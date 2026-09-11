@@ -24,7 +24,8 @@ import sqlite3
 import json
 from datetime import datetime
 from flask import Flask, request, jsonify, render_template
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 app = Flask(__name__)
 
@@ -93,11 +94,8 @@ Agency contact number (only share if asked): {AGENCY_INFO['phone']}
 # Reads your key from the GEMINI_API_KEY environment variable.
 # Get a free key at: https://aistudio.google.com/apikey
 # Never hardcode your real API key directly in this file.
-genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
-model = genai.GenerativeModel(
-    model_name="gemini-flash-latest",
-    system_instruction=SYSTEM_PROMPT,
-)
+gemini_client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+GEMINI_MODEL = "gemini-flash-latest"
 
 # ---------------------------------------------------------------
 # 3. SIMPLE LEAD STORAGE (SQLite - no setup needed)
@@ -156,14 +154,20 @@ def chat():
     if not user_message:
         return jsonify({"error": "Empty message"}), 400
 
-    # Gemini expects roles "user" / "model" and a "parts" list instead of "content"
+    # New SDK expects roles "user" / "model" and Content/Part objects
     gemini_history = []
     for turn in history:
         role = "model" if turn.get("role") == "assistant" else "user"
-        gemini_history.append({"role": role, "parts": [turn.get("content", "")]})
+        gemini_history.append(
+            types.Content(role=role, parts=[types.Part(text=turn.get("content", ""))])
+        )
 
     try:
-        chat_session = model.start_chat(history=gemini_history)
+        chat_session = gemini_client.chats.create(
+            model=GEMINI_MODEL,
+            config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT),
+            history=gemini_history,
+        )
         response = chat_session.send_message(user_message)
         reply = response.text
     except Exception as exc:
