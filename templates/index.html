@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ agency_name }} — Chat with us</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#16273D;
+    --navy-soft:#213A57;
+    --gold:#B9893E;
+    --cream:#F6F2EA;
+    --paper:#FFFFFF;
+    --ink:#22282E;
+    --ink-soft:#5B6470;
+    --line:#E4DDD0;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    line-height:1.5;
+  }
+  .wrap{
+    max-width:1140px;
+    margin:0 auto;
+    padding:48px 24px 80px;
+    display:grid;
+    grid-template-columns:1.1fr 0.9fr;
+    gap:56px;
+    align-items:start;
+  }
+  @media (max-width:880px){
+    .wrap{grid-template-columns:1fr; padding:32px 18px 56px;}
+  }
+
+  .eyebrow{
+    color:var(--gold);
+    font-weight:600;
+    font-size:13px;
+    letter-spacing:.04em;
+    margin-bottom:14px;
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:clamp(34px,4.4vw,52px);
+    line-height:1.08;
+    margin:0 0 18px;
+    color:var(--navy);
+    max-width:11ch;
+  }
+  .lede{
+    font-size:17px;
+    color:var(--ink-soft);
+    max-width:46ch;
+    margin:0 0 34px;
+  }
+  .agent-line{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:40px;
+  }
+  .agent-dot{
+    width:9px;height:9px;border-radius:50%;
+    background:#3E8E5B;
+    box-shadow:0 0 0 4px rgba(62,142,91,.18);
+  }
+  .agent-line span{font-size:14px; color:var(--ink-soft);}
+
+  .listings{
+    display:grid;
+    gap:14px;
+  }
+  .listing{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:16px 18px;
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:16px;
+  }
+  .listing .t{
+    font-size:15px;
+    font-weight:500;
+    color:var(--navy);
+  }
+  .listing .d{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin-top:3px;
+  }
+  .listing .p{
+    font-family:'Fraunces',serif;
+    font-size:17px;
+    color:var(--gold);
+    white-space:nowrap;
+  }
+
+  /* Chat panel */
+  .chat-card{
+    background:var(--navy);
+    border-radius:10px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    height:600px;
+    position:sticky;
+    top:32px;
+    box-shadow:0 24px 60px -20px rgba(22,39,61,.45);
+  }
+  .chat-head{
+    padding:20px 22px;
+    border-bottom:1px solid rgba(255,255,255,.09);
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .chat-head .avatar{
+    width:34px;height:34px;border-radius:50%;
+    background:var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;
+    color:var(--navy);
+    font-weight:600;
+    font-size:15px;
+  }
+  .chat-head .who .name{color:#fff; font-size:14px; font-weight:600;}
+  .chat-head .who .status{color:#9FB0C2; font-size:12px;}
+
+  .chat-log{
+    flex:1;
+    overflow-y:auto;
+    padding:20px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    background:var(--navy-soft);
+  }
+  .msg{
+    max-width:82%;
+    padding:11px 14px;
+    border-radius:12px;
+    font-size:14.5px;
+    line-height:1.5;
+    white-space:pre-wrap;
+  }
+  .msg.bot{
+    align-self:flex-start;
+    background:#2C4864;
+    color:#F1F4F7;
+    border-bottom-left-radius:3px;
+  }
+  .msg.user{
+    align-self:flex-end;
+    background:var(--gold);
+    color:#20170A;
+    border-bottom-right-radius:3px;
+  }
+  .msg.typing{
+    align-self:flex-start;
+    background:#2C4864;
+    color:#B8C4D0;
+    font-style:italic;
+    font-size:13.5px;
+  }
+
+  .chat-input{
+    display:flex;
+    gap:10px;
+    padding:16px;
+    background:var(--navy);
+    border-top:1px solid rgba(255,255,255,.09);
+  }
+  .chat-input input{
+    flex:1;
+    background:#20344B;
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:8px;
+    padding:12px 14px;
+    color:#fff;
+    font-size:14.5px;
+    font-family:inherit;
+    outline:none;
+  }
+  .chat-input input::placeholder{color:#8FA0B2;}
+  .chat-input button{
+    background:var(--gold);
+    border:none;
+    border-radius:8px;
+    padding:0 20px;
+    color:var(--navy);
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .chat-input button:disabled{opacity:.5; cursor:default;}
+
+  .foot-note{
+    margin-top:14px;
+    font-size:12px;
+    color:var(--ink-soft);
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div>
+    <div class="eyebrow">{{ agency_name.upper() }}</div>
+    <h1>Find your next home, without the back-and-forth.</h1>
+    <p class="lede">
+      Ask about location, price, or availability — our assistant
+      answers instantly, any time of day, and passes your details
+      to a real agent when you're ready to move forward.
+    </p>
+    <div class="agent-line">
+      <div class="agent-dot"></div>
+      <span>Assistant is online now</span>
+    </div>
+
+    <div class="listings">
+      <div class="listing">
+        <div>
+          <div class="t">5 Marla House — DHA Phase 6</div>
+          <div class="d">3 bed · 3 bath · corner plot · ready to move</div>
+        </div>
+        <div class="p">2.1 Cr</div>
+      </div>
+      <div class="listing">
+        <div>
+          <div class="t">10 Marla Plot — Bahria Town Sector C</div>
+          <div class="d">Possession available · near main boulevard</div>
+        </div>
+        <div class="p">1.8 Cr</div>
+      </div>
+      <div class="listing">
+        <div>
+          <div class="t">1 Kanal House — DHA Phase 8</div>
+          <div class="d">5 bed · basement · servant quarter</div>
+        </div>
+        <div class="p">6.5 Cr</div>
+      </div>
+      <div class="listing">
+        <div>
+          <div class="t">Commercial Shop — Johar Town</div>
+          <div class="d">Ground floor · 350 sq ft · prime location</div>
+        </div>
+        <div class="p">95 Lac</div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="chat-card">
+      <div class="chat-head">
+        <div class="avatar">PE</div>
+        <div class="who">
+          <div class="name">{{ agency_name }}</div>
+          <div class="status">Usually replies in seconds</div>
+        </div>
+      </div>
+      <div class="chat-log" id="chatLog">
+        <div class="msg bot">Assalam-o-Alaikum! I can help you find a plot, house, or shop in DHA, Bahria Town, Johar Town, or Wapda Town. What are you looking for?</div>
+      </div>
+      <div class="chat-input">
+        <input id="msgInput" type="text" placeholder="Type your question..." autocomplete="off">
+        <button id="sendBtn">Send</button>
+      </div>
+    </div>
+    <div class="foot-note">Demo project — built with Flask + OpenAI API</div>
+  </div>
+</div>
+
+<script>
+  const chatLog = document.getElementById('chatLog');
+  const input = document.getElementById('msgInput');
+  const sendBtn = document.getElementById('sendBtn');
+  let history = [];
+
+  function addMessage(text, role){
+    const div = document.createElement('div');
+    div.className = 'msg ' + (role === 'user' ? 'user' : 'bot');
+    div.textContent = text;
+    chatLog.appendChild(div);
+    chatLog.scrollTop = chatLog.scrollHeight;
+    return div;
+  }
+
+  async function sendMessage(){
+    const text = input.value.trim();
+    if(!text) return;
+    addMessage(text, 'user');
+    history.push({role:'user', content:text});
+    input.value = '';
+    sendBtn.disabled = true;
+
+    const typing = document.createElement('div');
+    typing.className = 'msg typing';
+    typing.textContent = 'Typing...';
+    chatLog.appendChild(typing);
+    chatLog.scrollTop = chatLog.scrollHeight;
+
+    try{
+      const res = await fetch('/api/chat', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({message:text, history: history.slice(0,-1)})
+      });
+      const data = await res.json();
+      typing.remove();
+      if(data.reply){
+        addMessage(data.reply, 'bot');
+        history.push({role:'assistant', content:data.reply});
+      } else {
+        addMessage('Sorry, something went wrong. Please try again.', 'bot');
+        addMessage('DEBUG DETAIL: ' + (data.error || 'no error detail returned'), 'bot');
+      }
+    } catch(err){
+      typing.remove();
+      addMessage('Connection error. Please check your internet and try again.', 'bot');
+    }
+    sendBtn.disabled = false;
+    input.focus();
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  input.addEventListener('keydown', e => { if(e.key === 'Enter') sendMessage(); });
+</script>
+</body>
+</html>
