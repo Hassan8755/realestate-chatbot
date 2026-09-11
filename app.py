@@ -98,7 +98,7 @@ Agency contact number (only share if asked): {AGENCY_INFO['phone']}
 # Get a free key at: https://aistudio.google.com/apikey
 # Never hardcode your real API key directly in this file.
 gemini_client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
-GEMINI_MODEL = "gemini-flash-latest"
+GEMINI_MODEL = "gemini-flash-lite-latest"
 
 # ---------------------------------------------------------------
 # 3. SIMPLE LEAD STORAGE (SQLite - no setup needed)
