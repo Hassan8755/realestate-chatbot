@@ -202,6 +202,39 @@
     cursor:pointer;
   }
   .chat-input button:disabled{opacity:.5; cursor:default;}
+  .chat-input .mic-btn{
+    background:#20344B;
+    border:1px solid rgba(255,255,255,.15);
+    border-radius:8px;
+    width:44px;
+    min-width:44px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:0;
+  }
+  .chat-input .mic-btn svg{width:18px; height:18px; stroke:#DCE6EF;}
+  .chat-input .mic-btn.recording{
+    background:#C0453D;
+    border-color:#C0453D;
+    animation:pulse 1.1s infinite;
+  }
+  .chat-input .mic-btn.recording svg{stroke:#fff;}
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(192,69,61,.55);}
+    70%{box-shadow:0 0 0 10px rgba(192,69,61,0);}
+    100%{box-shadow:0 0 0 0 rgba(192,69,61,0);}
+  }
+  .speaker-toggle{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:0 16px 12px;
+    font-size:12px;
+    color:#9FB0C2;
+  }
+  .speaker-toggle input{margin:0;}
 
   .foot-note{
     margin-top:14px;
@@ -272,8 +305,20 @@
         <div class="msg bot">Assalam-o-Alaikum! I can help you find a plot, house, or shop anywhere in Lahore, Faisalabad, or Multan — DHA, Bahria Town, Gulberg, Model Town, and more. What are you looking for?</div>
       </div>
       <div class="chat-input">
-        <input id="msgInput" type="text" placeholder="Type your question..." autocomplete="off">
+        <input id="msgInput" type="text" placeholder="Type or press mic to speak..." autocomplete="off">
+        <button class="mic-btn" id="micBtn" title="Voice message">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </button>
         <button id="sendBtn">Send</button>
+      </div>
+      <div class="speaker-toggle">
+        <input type="checkbox" id="voiceReplyToggle">
+        <label for="voiceReplyToggle">Bot jawab bhi bol kar sunaye (voice reply)</label>
       </div>
     </div>
     <div class="foot-note">Demo project — built with Flask + OpenAI API</div>
@@ -320,6 +365,7 @@
       if(data.reply){
         addMessage(data.reply, 'bot');
         history.push({role:'assistant', content:data.reply});
+        speakReply(data.reply);
       } else {
         addMessage('Sorry, something went wrong. Please try again.', 'bot');
         addMessage('DEBUG DETAIL: ' + (data.error || 'no error detail returned'), 'bot');
@@ -334,6 +380,65 @@
 
   sendBtn.addEventListener('click', sendMessage);
   input.addEventListener('keydown', e => { if(e.key === 'Enter') sendMessage(); });
+
+  // ---------------------------------------------------------------
+  // VOICE INPUT (speak instead of typing)
+  // ---------------------------------------------------------------
+  const micBtn = document.getElementById('micBtn');
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition = null;
+  let isRecording = false;
+
+  if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.lang = 'ur-PK';       // Urdu (Pakistan) - change to 'en-US' for English-only clients
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      isRecording = true;
+      micBtn.classList.add('recording');
+    };
+    recognition.onend = () => {
+      isRecording = false;
+      micBtn.classList.remove('recording');
+    };
+    recognition.onerror = () => {
+      isRecording = false;
+      micBtn.classList.remove('recording');
+    };
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      input.value = transcript;
+      sendMessage(); // auto-send the spoken message
+    };
+
+    micBtn.addEventListener('click', () => {
+      if (isRecording) {
+        recognition.stop();
+      } else {
+        recognition.start();
+      }
+    });
+  } else {
+    // Browser doesn't support voice input (e.g. some desktop Firefox) - hide the mic button
+    micBtn.style.display = 'none';
+  }
+
+  // ---------------------------------------------------------------
+  // VOICE OUTPUT (bot reads its reply out loud)
+  // ---------------------------------------------------------------
+  const voiceReplyToggle = document.getElementById('voiceReplyToggle');
+
+  function speakReply(text){
+    if (!voiceReplyToggle.checked) return;
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel(); // stop any previous speech
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ur-PK'; // falls back to a default voice if Urdu isn't installed
+    utterance.rate = 0.95;
+    window.speechSynthesis.speak(utterance);
+  }
 </script>
 </body>
 </html>
